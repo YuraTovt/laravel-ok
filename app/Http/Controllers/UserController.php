@@ -10,10 +10,12 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    const PAGINATION_PER_PAGE = 5;
+
     public function index()
     {
         $paginator = User::query()
-            ->paginate(2);
+            ->paginate(self::PAGINATION_PER_PAGE);
 
         return view('users.index', ['paginator' => $paginator]);
     }
