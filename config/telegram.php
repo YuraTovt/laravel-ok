@@ -112,6 +112,7 @@ return [
     */
     'commands'                     => [
         Telegram\Bot\Commands\HelpCommand::class,
+        \App\Bot\Commands\StartCommand::class
     ],
 
     /*
@@ -196,4 +197,6 @@ return [
         // 'stop' => Acme\Project\Commands\StopCommand::class,
         // 'status' => Acme\Project\Commands\StatusCommand::class,
     ],
+
+    'webhook_token' => env('TELEGRAM_WEBHOOK_TOKEN', '')
 ];

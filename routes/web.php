@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,5 +25,7 @@ Route::get('/dashboard', function () {
 
 Route::resource('users', UserController::class)
     ->middleware(['auth', 'verified']);
+
+Route::post('telegram/webhook/{token}', [TelegramController::class, 'webhook']);
 
 require __DIR__.'/auth.php';
