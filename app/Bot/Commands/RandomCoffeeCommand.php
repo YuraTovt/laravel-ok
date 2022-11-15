@@ -4,15 +4,18 @@ namespace App\Bot\Commands;
 
 use App\Contracts\RandomCoffee;
 use App\Models\RandomCoffeeChat;
-use Illuminate\Support\Facades\Log;
-use Telegram\Bot\Actions;
 use Telegram\Bot\Commands\Command;
 
 class RandomCoffeeCommand extends Command
 {
     protected $name = 'random-coffee';
-    protected $description = 'Start Command to get you started';
+    protected $description = 'Generate random coffee';
     protected RandomCoffee $randomCoffee;
+
+    public function __construct(RandomCoffee $randomCoffee)
+    {
+        $this->randomCoffee = $randomCoffee;
+    }
 
     public function handle()
     {

@@ -8,36 +8,45 @@ use Telegram\Bot\Commands\Command;
 
 class ImOutCommand extends Command
 {
-    protected $name = 'im-out';
-    protected $description = 'Start Command to get you started';
+    protected $name = 'imout';
+    protected $description = 'Leave random coffee';
     protected RandomCoffee $randomCoffee;
+
+    public function __construct(RandomCoffee $randomCoffee)
+    {
+        $this->randomCoffee = $randomCoffee;
+    }
 
     public function handle()
     {
         $telegramUpdate = $this->getUpdate();
         $telegramChat = $telegramUpdate->getChat();
-        $telegramMessage = $telegramUpdate->getMessage();
+        $telegramUser = $telegramUpdate->getMessage()->from;
 
-        $chat = RandomCoffeeChat::query()
-            ->where('ext_id', '=', $telegramChat->id)
-            ->where('type', '=', 'telegram')
-            ->get()
-            ->first();
+        try {
+            $chat = RandomCoffeeChat::query()
+                ->where('ext_id', '=', $telegramChat->id)
+                ->where('type', '=', 'telegram')
+                ->get()
+                ->first();
 
-        if (!$chat) {
+            if (!$chat) {
+                $this->replyWithMessage(['text' => 'This chat does not support random coffee']);
+            }
 
+            $member = $chat
+                ->members()
+                ->where('ext_id', '=', $telegramUser->id)
+                ->get()
+                ->first();
+
+            if (!$member) {
+                $this->replyWithMessage(['text' => 'You are not member']);
+            }
+
+            $this->randomCoffee->removeMember($member);
+        } catch (\Exception $exception) {
+            $this->replyWithMessage(['text' => "Oops. Something is wrong. {$exception->getMessage()}"]);
         }
-
-        $member = $chat
-            ->members()
-            ->where('ext_id', '=', $telegramMessage->user->id)
-            ->get()
-            ->first();
-
-        if (!$member) {
-
-        }
-
-        $this->randomCoffee->removeMember($member);
     }
 }

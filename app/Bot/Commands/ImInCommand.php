@@ -4,34 +4,46 @@ namespace App\Bot\Commands;
 
 use App\Contracts\RandomCoffee;
 use App\Models\RandomCoffeeChat;
+use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Commands\Command;
 
 class ImInCommand extends Command
 {
-    protected $name = 'im-in';
-    protected $description = 'Start Command to get you started';
+    protected $name = 'imin';
+    protected $description = 'Join random coffee';
     protected RandomCoffee $randomCoffee;
+
+    public function __construct(RandomCoffee $randomCoffee)
+    {
+        $this->randomCoffee = $randomCoffee;
+    }
 
     public function handle()
     {
         $telegramUpdate = $this->getUpdate();
         $telegramChat = $telegramUpdate->getChat();
-        $telegramMessage = $telegramUpdate->getMessage();
+        $telegramUser = $telegramUpdate->getMessage()->from;
 
-        $chat = RandomCoffeeChat::query()
-            ->where('ext_id', '=', $telegramChat->id)
-            ->where('type', '=', 'telegram')
-            ->get()
-            ->first();
+        try {
+            $chat = RandomCoffeeChat::query()
+                ->where('ext_id', '=', $telegramChat->id)
+                ->where('type', '=', 'telegram')
+                ->get()
+                ->first();
 
-        if (!$chat) {
-            $chat = $this->randomCoffee->registerChat($telegramChat->id, 'telegram');
+            if (!$chat) {
+                $chat = $this->randomCoffee->registerChat($telegramChat->id, $telegramChat->username);
+            }
+
+            $this->randomCoffee->registerMember(
+                $telegramUser->id,
+                "{$telegramUser->firstName} {$telegramUser->lastName}",
+                $chat
+            );
+
+            $this->replyWithMessage(['text' => 'Done']);
+        } catch (\Exception $exception) {
+            $this->replyWithMessage(['text' => "Oops. Something is wrong. {$exception->getMessage()}"]);
         }
-
-        $this->randomCoffee->registerMember(
-            $telegramMessage->user->id,
-            "{$telegramMessage->user->firstName} {$telegramMessage->user->lastName}",
-            $chat
-        );
     }
 }
