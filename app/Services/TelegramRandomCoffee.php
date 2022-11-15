@@ -73,12 +73,17 @@ class TelegramRandomCoffee implements RandomCoffeeContract
     /**
      * @param $chat
      * @return array
+     * @throws AppException
      */
     public function generatePairs($chat): array
     {
         $pairs = [];
 
         $members = $chat->members->all();
+
+        if (count($members) < 2) {
+            throw new AppException('Not enough members');
+        }
 
         shuffle($members);
 

@@ -9,7 +9,7 @@ use Telegram\Bot\Commands\Command;
 
 class RandomCoffeeCommand extends Command
 {
-    protected $name = 'random-coffee';
+    protected $name = 'coffee';
     protected $description = 'Generate random coffee';
     protected RandomCoffee $randomCoffee;
 
