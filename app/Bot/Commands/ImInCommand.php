@@ -32,7 +32,7 @@ class ImInCommand extends Command
                 ->first();
 
             if (!$chat) {
-                $chat = $this->randomCoffee->registerChat($telegramChat->id, $telegramChat->username);
+                $chat = $this->randomCoffee->registerChat($telegramChat->id, "Chat {$telegramChat->id}");
             }
 
             $this->randomCoffee->registerMember(

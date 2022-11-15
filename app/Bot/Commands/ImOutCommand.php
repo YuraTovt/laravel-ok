@@ -45,6 +45,8 @@ class ImOutCommand extends Command
             }
 
             $this->randomCoffee->removeMember($member);
+
+            $this->replyWithMessage(['text' => 'Done']);
         } catch (\Exception $exception) {
             $this->replyWithMessage(['text' => "Oops. Something is wrong. {$exception->getMessage()}"]);
         }
