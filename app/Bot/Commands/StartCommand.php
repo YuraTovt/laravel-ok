@@ -2,6 +2,7 @@
 
 namespace App\Bot\Commands;
 
+use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Commands\Command;
 
@@ -16,6 +17,15 @@ class StartCommand extends Command
         $this->replyWithChatAction(['action' => Actions::TYPING]);
 
         $commands = $this->getTelegram()->getCommands();
+
+        try {
+            // $this->getTelegram()->sendMessage()
+            //id,first_name,last_name
+            //Log::debug(json_encode($this->getUpdate()->getMessage()->from->toArray()));
+            //Log::debug(json_encode($this->getUpdate()->getChat()->toArray()));
+        } catch (\Exception $e) {
+            $this->replyWithMessage(['text' => 'error']);
+        }
 
         $response = '';
         foreach ($commands as $name => $command) {

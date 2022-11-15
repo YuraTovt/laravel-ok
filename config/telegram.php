@@ -112,7 +112,10 @@ return [
     */
     'commands'                     => [
         Telegram\Bot\Commands\HelpCommand::class,
-        \App\Bot\Commands\StartCommand::class
+        \App\Bot\Commands\StartCommand::class,
+        \App\Bot\Commands\ImInCommand::class,
+        \App\Bot\Commands\ImOutCommand::class,
+        \App\Bot\Commands\RandomCoffeeCommand::class,
     ],
 
     /*
