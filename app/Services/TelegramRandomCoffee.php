@@ -84,7 +84,7 @@ final class TelegramRandomCoffee implements RandomCoffeeContract
 
         $member = $member instanceof RandomCoffeeChatMember
             ? $member
-            : $this->findChatMember($member);
+            : $this->findChatMember($chat, $member);
 
         if ($chat->id !== $member->random_coffee_chat_id) {
             throw new AppException('Member does not belong to chat');
@@ -156,15 +156,20 @@ final class TelegramRandomCoffee implements RandomCoffeeContract
     }
 
     /**
+     * @param RandomCoffeeChat $chat
      * @param $id
      * @return RandomCoffeeChatMember
      * @throws AppException
      */
-    private function findChatMember($id): RandomCoffeeChatMember
+    private function findChatMember(RandomCoffeeChat $chat, $id): RandomCoffeeChatMember
     {
-        $member = RandomCoffeeChatMember::query()
-            ->where('id', '=', $id)
-            ->orWhere('ext_id', '=', $id)
+        $member = RandomCoffeeChat::query()
+            ->where('random_coffee_chat_id', '=', $chat->id)
+            ->where(function ($query) use ($id) {
+                $query
+                    ->where('id', '=', $id)
+                    ->orWhere('ext_id', '=', $id);
+            })
             ->get()
             ->first();
 
