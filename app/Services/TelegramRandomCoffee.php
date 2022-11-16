@@ -163,7 +163,7 @@ final class TelegramRandomCoffee implements RandomCoffeeContract
      */
     private function findChatMember(RandomCoffeeChat $chat, $id): RandomCoffeeChatMember
     {
-        $member = RandomCoffeeChat::query()
+        $member = RandomCoffeeChatMember::query()
             ->where('random_coffee_chat_id', '=', $chat->id)
             ->where(function ($query) use ($id) {
                 $query
