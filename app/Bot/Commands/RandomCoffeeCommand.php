@@ -3,8 +3,6 @@
 namespace App\Bot\Commands;
 
 use App\Contracts\RandomCoffee;
-use App\Models\RandomCoffeeChat;
-use App\Models\RandomCoffeeChatMember;
 use Telegram\Bot\Commands\Command;
 
 class RandomCoffeeCommand extends Command
@@ -24,25 +22,9 @@ class RandomCoffeeCommand extends Command
         $telegramChat = $telegramUpdate->getChat();
 
         try {
-            $chat = RandomCoffeeChat::query()
-                ->where('ext_id', '=', $telegramChat->id)
-                ->where('type', '=', 'telegram')
-                ->get()
-                ->first();
-
-            $pairs = $this->randomCoffee->generatePairs($chat);
-
-            $response = "Coffee pairs:\n";
-            foreach ($pairs as $pair) {
-                $pairNames = [];
-                /** @var RandomCoffeeChatMember $member */
-                foreach ($pair as $member) {
-                    $pairNames[] = $member->name;
-                }
-                $response .= implode(' and ', $pairNames) . "\n";
-            }
-
-            $this->replyWithMessage(['text' => $response]);
+            $this->randomCoffee->sendRandomCoffeeListToChat(
+                $telegramChat->id
+            );
         } catch (\Exception $exception) {
             $this->replyWithMessage(['text' => "Oops. Something is wrong. {$exception->getMessage()}"]);
         }

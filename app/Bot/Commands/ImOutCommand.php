@@ -3,7 +3,6 @@
 namespace App\Bot\Commands;
 
 use App\Contracts\RandomCoffee;
-use App\Models\RandomCoffeeChat;
 use Telegram\Bot\Commands\Command;
 
 class ImOutCommand extends Command
@@ -24,27 +23,10 @@ class ImOutCommand extends Command
         $telegramUser = $telegramUpdate->getMessage()->from;
 
         try {
-            $chat = RandomCoffeeChat::query()
-                ->where('ext_id', '=', $telegramChat->id)
-                ->where('type', '=', 'telegram')
-                ->get()
-                ->first();
-
-            if (!$chat) {
-                $this->replyWithMessage(['text' => 'This chat does not support random coffee']);
-            }
-
-            $member = $chat
-                ->members()
-                ->where('ext_id', '=', $telegramUser->id)
-                ->get()
-                ->first();
-
-            if (!$member) {
-                $this->replyWithMessage(['text' => 'You are not member']);
-            }
-
-            $this->randomCoffee->removeMember($member);
+            $this->randomCoffee->removeMember(
+                $telegramChat->id,
+                $telegramUser->id
+            );
 
             $this->replyWithMessage(['text' => 'Done']);
         } catch (\Exception $exception) {

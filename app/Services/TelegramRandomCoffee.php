@@ -6,8 +6,10 @@ use App\Contracts\RandomCoffee as RandomCoffeeContract;
 use App\Exceptions\AppException;
 use App\Models\RandomCoffeeChat;
 use App\Models\RandomCoffeeChatMember;
+use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
-class TelegramRandomCoffee implements RandomCoffeeContract
+final class TelegramRandomCoffee implements RandomCoffeeContract
 {
     /**
      * @param $extId
@@ -41,6 +43,18 @@ class TelegramRandomCoffee implements RandomCoffeeContract
      */
     public function registerMember($extId, $name, $chat): RandomCoffeeChatMember
     {
+        $chat = $chat instanceof RandomCoffeeChat
+            ? $chat
+            : $this->findChat($chat);
+
+        $memberAlreadyInChat = $chat->members()
+            ->where('ext_id', '=', $extId)
+            ->exists();
+
+        if ($memberAlreadyInChat) {
+            throw new AppException('Member with such id already exists');
+        }
+
         $member = new RandomCoffeeChatMember();
 
         $member->ext_id = $extId;
@@ -57,12 +71,25 @@ class TelegramRandomCoffee implements RandomCoffeeContract
     }
 
     /**
-     * @param RandomCoffeeChatMember $member
+     * @param int|string|RandomCoffeeChat $chat
+     * @param int|string|RandomCoffeeChatMember $member
      * @return void
      * @throws AppException
      */
-    public function removeMember($member): void
+    public function removeMember($chat, $member): void
     {
+        $chat = $chat instanceof RandomCoffeeChat
+            ? $chat
+            : $this->findChat($chat);
+
+        $member = $member instanceof RandomCoffeeChatMember
+            ? $member
+            : $this->findChatMember($member);
+
+        if ($chat->id !== $member->random_coffee_chat_id) {
+            throw new AppException('Member does not belong to chat');
+        }
+
         try {
             $member->delete();
         } catch (\Exception) {
@@ -72,10 +99,88 @@ class TelegramRandomCoffee implements RandomCoffeeContract
 
     /**
      * @param $chat
+     * @return void
+     * @throws AppException
+     */
+    public function sendRandomCoffeeListToChat($chat): void
+    {
+        $chat = $chat instanceof RandomCoffeeChat
+            ? $chat
+            : $this->findChat($chat);
+
+        $pairs = $this->generatePairs($chat);
+
+        $response = "Coffee pairs:\n";
+        foreach ($pairs as $pair) {
+            $pairNames = [];
+            /** @var RandomCoffeeChatMember $member */
+            foreach ($pair as $member) {
+                $pairNames[] = $member->name;
+            }
+            $response .= implode(' and ', $pairNames) . "\n";
+        }
+
+        try {
+            Telegram::bot('coffee')
+                ->sendMessage([
+                    'chat_id' => $chat->ext_id,
+                    'text' => $response
+                ]);
+        } catch (TelegramSDKException) {
+            throw new AppException('Failed to send random coffee list');
+        }
+    }
+
+    /**
+     * @param $id
+     * @return RandomCoffeeChat
+     * @throws AppException
+     */
+    private function findChat($id): RandomCoffeeChat
+    {
+        $chat = RandomCoffeeChat::query()
+            ->where('id', '=', $id)
+            ->orWhere(function ($query) use ($id) {
+                $query
+                    ->where('ext_id', '=', $id)
+                    ->where('type', '=', 'telegram');
+            })
+            ->get()
+            ->first();
+
+        if (!$chat) {
+            throw new AppException('Chat not found');
+        }
+
+        return $chat;
+    }
+
+    /**
+     * @param $id
+     * @return RandomCoffeeChatMember
+     * @throws AppException
+     */
+    private function findChatMember($id): RandomCoffeeChatMember
+    {
+        $member = RandomCoffeeChatMember::query()
+            ->where('id', '=', $id)
+            ->orWhere('ext_id', '=', $id)
+            ->get()
+            ->first();
+
+        if (!$id) {
+            throw new AppException('Member not found');
+        }
+
+        return $member;
+    }
+
+    /**
+     * @param $chat
      * @return array
      * @throws AppException
      */
-    public function generatePairs($chat): array
+    private function generatePairs($chat): array
     {
         $pairs = [];
 

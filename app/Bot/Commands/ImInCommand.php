@@ -4,7 +4,6 @@ namespace App\Bot\Commands;
 
 use App\Contracts\RandomCoffee;
 use App\Models\RandomCoffeeChat;
-use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Commands\Command;
 
 class ImInCommand extends Command
@@ -32,7 +31,10 @@ class ImInCommand extends Command
                 ->first();
 
             if (!$chat) {
-                $chat = $this->randomCoffee->registerChat($telegramChat->id, "Chat {$telegramChat->id}");
+                $chat = $this->randomCoffee->registerChat(
+                    $telegramChat->id,
+                    "Chat {$telegramChat->id}"
+                );
             }
 
             $this->randomCoffee->registerMember(
